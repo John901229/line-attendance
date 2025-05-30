@@ -7,13 +7,13 @@
 </head>
 <body>
   <h2>📍 LINE 出勤打卡</h2>
-<button style="font-size: 20px; padding: 12px 24px;">上班</button>
-<button style="font-size: 20px; padding: 12px 24px;">下班</button>
-<button style="font-size: 20px; padding: 12px 24px;">請假</button>
-<button style="font-size: 20px; padding: 12px 24px;">查詢</button>
+  <button onclick="doAction('上班')" style="font-size: 20px; padding: 12px 24px;">上班</button>
+  <button onclick="doAction('下班')" style="font-size: 20px; padding: 12px 24px;">下班</button>
+  <button onclick="doAction('請假')" style="font-size: 20px; padding: 12px 24px;">請假</button>
+  <button onclick="doAction('查詢')" style="font-size: 20px; padding: 12px 24px;">查詢</button>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbz_OB00qi-662foDlpOHSvDml2-jDI80ySGvN3wMgwzqELbfySOJjHnxZlvMTUY7eED/exec"; // 👈 改成你部署的 Apps Script 網址
+    const scriptURL = "https://script.google.com/macros/s/AKfycbz_OB00qi-662foDlpOHSvDml2-jDI80ySGvN3wMgwzqELbfySOJjHnxZlvMTUY7eED/exec"; // 👈 你的 Apps Script 網址
 
     liff.init({ liffId: "2007506877-mjZWxk8a" }).then(() => {
       if (!liff.isLoggedIn()) liff.login();
@@ -21,22 +21,28 @@
 
     function doAction(type) {
       navigator.geolocation.getCurrentPosition(pos => {
-        const data = {
-          type,
-          userId: liff.getContext().userId,
-          name: "使用者",  // ⚠️ 你可以改為輸入暱稱
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          leaveType: "事假"
-        };
+        liff.getProfile().then(profile => {
+          const data = {
+            type,
+            userId: profile.userId,
+            name: profile.displayName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            leaveType: "事假"
+          };
 
-        fetch(scriptURL, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
-        }).then(res => res.text()).then(alert);
+          fetch(scriptURL, {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json" }
+          })
+          .then(res => res.text())
+          .then(txt => alert(txt))
+          .catch(err => alert("⚠️ 傳送失敗：" + err.message));
+        });
       }, err => alert("⚠️ 無法取得定位：" + err.message));
     }
   </script>
 </body>
 </html>
+
